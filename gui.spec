@@ -4,10 +4,11 @@ block_cipher = None
 
 
 a = Analysis(['gui.spec'],
-             pathex=['C:\\Users\\Wesley\\Documents\\pytest'],
+             pathex=['.'],
              binaries=[],
              datas=[('icon.ico', '.'), ('loading.gif', '.')],
-             hiddenimports=[],
+             hiddenimports=['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtGui',
+                            'PyQt5.QtWidgets', 'accumulator'],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
