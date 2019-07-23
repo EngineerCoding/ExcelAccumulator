@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['gui.sepc'],
+a = Analysis(['gui.spec'],
              pathex=['C:\\Users\\Wesley\\Documents\\pytest'],
              binaries=[],
              datas=[('icon.ico', '.'), ('loading.gif', '.')],
