@@ -133,9 +133,18 @@ if __name__ == '__main__':
     argument_parser = argparse.ArgumentParser()
     argument_parser.add_argument('input_file')
     argument_parser.add_argument('output_file')
+    argument_parser.add_argument('--group-by-row', action='store_true')
+    argument_parser.add_argument(
+        '--skip-initial-lines', type=int, default=0,
+        help='Only available when grouping by rows')
     parsed = argument_parser.parse_args()
 
     if not os.path.isfile(parsed.input_file):
         print('Input file does not exist')
         sys.exit(1)
-    accumulate_sheets(parsed.input_file, parsed.output_file)
+    file_arguments = (parsed.input_file, parsed.output_file)
+    if parsed.group_by_row:
+        accumulate_sheets_row_grouped(
+            *file_arguments, skip_rows=parsed.skip_initial_lines)
+    else:
+        accumulate_sheets(*file_arguments)
