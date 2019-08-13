@@ -6,9 +6,10 @@ from PyQt5.QtCore import pyqtSlot, QByteArray, Qt
 from PyQt5.QtGui import QMovie, QIcon
 from PyQt5.QtWidgets import (
     QWidget, QApplication, QDesktopWidget, QVBoxLayout, QPushButton,
-    QFileDialog, QLabel, QSizePolicy, QDialog, QPlainTextEdit, QHBoxLayout)
+    QFileDialog, QLabel, QSizePolicy, QDialog, QPlainTextEdit, QHBoxLayout,
+    QCheckBox, QSpinBox)
 
-from accumulator import accumulate_sheets
+from accumulator import accumulate_sheets, accumulate_sheets_row_grouped
 
 
 def get_path(path: str) -> str:
@@ -143,6 +144,21 @@ class ExcelAccumulator(QWidget):
         self._movie = ImagePlayer(get_path('loading.gif'))
         layout.addWidget(self._run_button)
         layout.addWidget(self._movie)
+        # Checkbox for attempt to group by row name
+        self._group_by_row_checkbox = QCheckBox('Groeperen op rijnaam')
+        self._group_by_row_checkbox.setChecked(True)
+        self._group_by_row_checkbox.stateChanged.connect(self.group_by_toggle)
+        layout.addWidget(self._group_by_row_checkbox)
+        _intact_layout = QHBoxLayout()
+        self._intact_rows_label = QLabel('Bovenste rijen intact laten:')
+        self._intact_rows_input = QSpinBox()
+        self._intact_rows_input.setMinimum(0)
+        self._intact_rows_input.setMaximum(2147483647)
+        self._intact_rows_input.setValue(17)
+        self._intact_rows_input.setSingleStep(1)
+        _intact_layout.addWidget(self._intact_rows_label)
+        _intact_layout.addWidget(self._intact_rows_input)
+        layout.addLayout(_intact_layout)
 
         self.setLayout(layout)
         self.reset()
@@ -160,6 +176,9 @@ class ExcelAccumulator(QWidget):
         self._input_button.show()
         self._output_button.show()
         self._run_button.show()
+        self._group_by_row_checkbox.show()
+        self._intact_rows_label.show()
+        self._intact_rows_input.show()
 
         self.adjustSize()
         self.center()
@@ -169,6 +188,11 @@ class ExcelAccumulator(QWidget):
         header.show()
         value_label.setText(value)
         value_label.show()
+
+    @pyqtSlot()
+    def group_by_toggle(self):
+        self._intact_rows_input.setEnabled(
+            self._group_by_row_checkbox.isChecked())
 
     @pyqtSlot()
     def select_input_excel(self):
@@ -204,11 +228,21 @@ class ExcelAccumulator(QWidget):
         self._input_button.hide()
         self._output_button.hide()
         self._run_button.hide()
+        self._group_by_row_checkbox.hide()
+        self._intact_rows_label.hide()
+        self._intact_rows_input.hide()
         self._movie.show()
         self.center()
         # execute
+        group_rows = self._group_by_row_checkbox.isChecked()
+        skip_rows = self._intact_rows_input.value()
+        base_args = (self._input_file_path, self._output_file_path)
+
         try:
-            accumulate_sheets(self._input_file_path, self._output_file_path)
+            if group_rows:
+                accumulate_sheets_row_grouped(*base_args, skip_rows=skip_rows)
+            else:
+                accumulate_sheets(*base_args)
         except Exception:
             formatted_exception = traceback.format_exc()
             ErrorDialog(exception_text=formatted_exception).exec_()
